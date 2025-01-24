@@ -1,0 +1,67 @@
+{
+    "name": "n5s/wp-cli-move",
+    "description": "Sync your WordPress content (database and uploads) between stages using the power of WP-CLI aliases.",
+    "license": "MIT",
+    "type": "wp-cli-package",
+    "authors": [
+        {
+            "name": "Nicolas Lemoine",
+            "email": "nico@n5s.dev",
+            "homepage": "https://n5s.dev/"
+        }
+    ],
+    "require": {
+        "php": "^8.1"
+    },
+    "require-dev": {
+        "ergebnis/composer-normalize": "^2.45",
+        "php-stubs/wordpress-stubs": "^6.7",
+        "phpstan/extension-installer": "^1.4",
+        "phpstan/phpstan": "^2.1",
+        "rector/rector": "^2.0",
+        "slevomat/coding-standard": "^8.14",
+        "szepeviktor/phpstan-wordpress": "^2.0",
+        "wp-cli/config-command": "^2.3",
+        "wp-cli/core-command": "^2.1",
+        "wp-cli/db-command": "^2.0",
+        "wp-cli/eval-command": "^2.2",
+        "wp-cli/search-replace-command": "^2.1",
+        "wp-cli/wp-cli-tests": "^4.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "n5s\\WpCliMove\\": "src/"
+        },
+        "files": [
+            "command.php"
+        ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "n5s\\WpCliMove\\Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true,
+            "ergebnis/composer-normalize": true,
+            "phpstan/extension-installer": true
+        }
+    },
+    "scripts": {
+        "behat": "run-behat-tests",
+        "behat-rerun": "rerun-behat-tests",
+        "lint": "run-linter-tests",
+        "phpcbf": "run-phpcbf-cleanup",
+        "phpcs": "run-phpcs-tests",
+        "phpunit": "run-php-unit-tests",
+        "prepare-tests": "install-package-tests",
+        "test": [
+            "@lint",
+            "@phpcs",
+            "@phpunit",
+            "@behat"
+        ]
+    },
+    "licence": "MIT"
+}

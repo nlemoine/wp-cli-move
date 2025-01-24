@@ -1,0 +1,10 @@
+parameters:
+    level: 8
+    paths:
+        - src/
+    scanFiles:
+        - %rootDir%/../../php-stubs/wordpress-stubs/wordpress-stubs.php
+    scanDirectories:
+        - %rootDir%/../../wp-cli/wp-cli
+    ignoreErrors:
+        - '#Function WP_CLI\\Utils\\esc_cmd invoked with [0-9]+ parameters, 1 required.#'
