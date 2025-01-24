@@ -13,7 +13,7 @@ composer require n5s/wp-cli-move --dev
 Using `wp package install`:
 
 ```sh
-wp package install n5s/wp-cli-move
+wp package install nlemoine/wp-cli-move:^0.1.0
 ```
 
 ## Requirements
