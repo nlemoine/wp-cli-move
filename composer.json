@@ -58,9 +58,11 @@
         "phpcs": "run-phpcs-tests",
         "phpunit": "run-php-unit-tests",
         "prepare-tests": "install-package-tests",
+        "phpstan": "phpstan analyse --memory-limit=1G",
         "test": [
             "@lint",
             "@phpcs",
+            "@phpstan",
             "@phpunit",
             "@behat"
         ]

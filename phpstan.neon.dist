@@ -2,6 +2,7 @@ parameters:
     level: 8
     editorUrl: 'vscode://file/%%file%%:%%line%%'
     paths:
+        - command.php
         - src/
     scanFiles:
         - %rootDir%/../../php-stubs/wordpress-stubs/wordpress-stubs.php
