@@ -26,8 +26,10 @@
         "wp-cli/db-command": "^2.0",
         "wp-cli/eval-command": "^2.2",
         "wp-cli/search-replace-command": "^2.1",
-        "wp-cli/wp-cli-tests": "^4.2"
+        "wp-cli/wp-cli-tests": "^4.3"
     },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
     "autoload": {
         "psr-4": {
             "n5s\\WpCliMove\\": "src/"

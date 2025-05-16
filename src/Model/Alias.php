@@ -379,6 +379,7 @@ final class Alias implements Stringable {
 						]
 					);
 
+					// @phpstan-ignore assign.propertyReadOnly
 					$result->command = $command;
 					break;
 				case self::COMMAND_TYPE_RAW:

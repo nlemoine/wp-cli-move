@@ -1,5 +1,6 @@
 parameters:
     level: 8
+    editorUrl: 'vscode://file/%%file%%:%%line%%'
     paths:
         - src/
     scanFiles:
@@ -7,4 +8,9 @@ parameters:
     scanDirectories:
         - %rootDir%/../../wp-cli/wp-cli
     ignoreErrors:
-        - '#Function WP_CLI\\Utils\\esc_cmd invoked with [0-9]+ parameters, 1 required.#'
+        -
+            message: '#Parameter \#[0-9]+ \$cmd of function WP_CLI\\Utils\\esc_cmd expects array<string>, string given.#'
+            identifier: argument.type
+        -
+            message: '#Parameter \#[0-9]+ \$assoc_args of function WP_CLI\\Utils\\assoc_args_to_str expects array<string, string>, array<string, string\|true> given.#'
+            identifier: argument.type
