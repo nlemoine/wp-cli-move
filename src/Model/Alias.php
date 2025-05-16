@@ -300,8 +300,15 @@ final class Alias implements Stringable {
 
 		$placeholder = '' === $command ? $this->get_random_hash() : '';
 
+		// Get SSH bits without path
+		// Because https://github.com/wp-cli/wp-cli/blob/3ca317ad8b50ebaf9580373a383490a82b768f4a/php/WP_CLI/Runner.php#L654-L657
+		// introduced in 2.12 https://github.com/wp-cli/wp-cli/commit/82772d90cfe12af1002df1312239cd61ebbb7dab
+		// breaks rsh
+		$ssh_bits = $this->get_ssh_bits();
+		unset( $ssh_bits['path'] );
+
 		/** @var string $ssh_command */
-		$ssh_command = $generate_ssh->invoke( $runner, $this->get_ssh_bits(), '' !== $placeholder ? $placeholder : $command );
+		$ssh_command = $generate_ssh->invoke( $runner, $ssh_bits, '' !== $placeholder ? $placeholder : $command );
 
 		if ( $placeholder ) {
 			$ssh_command = trim( str_replace( escapeshellarg( $placeholder ), '', $ssh_command ) );
