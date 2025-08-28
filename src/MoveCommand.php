@@ -481,7 +481,19 @@ class MoveCommand {
 	private function get_data_types( array $args ): array {
 		$data_types = array_combine( self::DATA_TYPES, array_map( fn( string $type ): bool => (bool) Utils\get_flag_value( $args, $type, false ), self::DATA_TYPES ) );
 
-		return count( array_filter( $data_types ) ) === 0 ? array_fill_keys( self::DATA_TYPES, true ) : $data_types;
+		// For backward compatibility, if no flags are provided, only sync db and uploads
+		if ( count( array_filter( $data_types ) ) === 0 ) {
+			return [
+				self::DATA_TYPE_DB => true,
+				self::DATA_TYPE_UPLOADS => true,
+				self::DATA_TYPE_THEMES => false,
+				self::DATA_TYPE_PLUGINS => false,
+				self::DATA_TYPE_MU_PLUGINS => false,
+				self::DATA_TYPE_LANGUAGES => false,
+			];
+		}
+
+		return $data_types;
 	}
 
 	/**
