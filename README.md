@@ -99,6 +99,32 @@ Push your local content to your staging environment:
 wp move push staging
 ```
 
+### Syncing specific content types
+
+Pull only themes from production:
+
+```sh
+wp move pull production --themes
+```
+
+Push only plugins to staging:
+
+```sh
+wp move push staging --plugins
+```
+
+Sync multiple content types at once:
+
+```sh
+wp move pull production --themes --plugins --mu-plugins
+```
+
+Sync everything (database, uploads, themes, plugins, mu-plugins, and languages):
+
+```sh
+wp move pull production --db --uploads --themes --plugins --mu-plugins --languages
+```
+
 ## Credits
 
 This WP-CLI package aims to replace the (still working but unmaintained) awesome [Wordmove](https://github.com/welaika/wordmove) Ruby gem 💎. It has been a time and life saver for many years. I'll be forever grateful to [@alessandro-fazzi](https://github.com/alessandro-fazzi) for creating it! 🙌
