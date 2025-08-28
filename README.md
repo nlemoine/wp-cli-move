@@ -1,6 +1,6 @@
 # wp-cli-move
 
-Sync your WordPress content (database and uploads) between stages using the power of WP-CLI aliases.
+Sync your WordPress content (database, uploads, themes, plugins, mu-plugins, languages) between stages using the power of WP-CLI aliases.
 
 ## Install
 
@@ -47,17 +47,17 @@ For more information about alias configuration, refer to the following WP-CLI do
 Depending on the sync direction, use either the `pull` or `push` commands.
 
 ```sh
-wp move pull/push [<alias>] [--db] [--uploads] [--disable-compress] [--dry-run]
+wp move pull/push [<alias>] [--db] [--uploads] [--themes] [--plugins] [--mu-plugins] [--languages] [--disable-compress] [--dry-run]
 ```
 
-If you omit the `--db` or `--uploads` flags, both data types will be synced by default.
+If you omit the specific flags (--db, --uploads, --themes, --plugins, --mu-plugins, --languages), both database and uploads will be synced by default for backward compatibility.
 
 Note that the `<alias>` argument is optional. Configured aliases will be shown in a menu to choose from if left empty.
 
 > [!CAUTION]
 > Just like any tool that manipulates your data, it's **always a good idea to make a backup before running commands**.
 >
-> Especially when syncing uploads, which uses the `rsync` command with the `--delete` flag under the hood and can wipe all your media files if used incorrectly.
+> Especially when syncing content folders (uploads, themes, plugins, etc.), which uses the `rsync` command with the `--delete` flag under the hood and can wipe all your files if used incorrectly.
 >
 > **Be sure to know what you're doing.**
 
@@ -68,6 +68,10 @@ Both `pull` and `push` commands use the same options.
 - `[<alias>]`: The alias you want to sync with.
 - `--db`: Sync only the database.
 - `--uploads`: Sync only the uploads.
+- `--themes`: Sync only the themes.
+- `--plugins`: Sync only the plugins.
+- `--mu-plugins`: Sync only the mu-plugins.
+- `--languages`: Sync only the languages.
 - `--disable-compress`: Disable database dump compression.
 - `--dry-run`: Print the command sequence without making any changes.
 
