@@ -20,7 +20,8 @@ use WP_CLI\Utils;
  *      port?: string,
  *      path?: string,
  * }
- * /**
+ */
+/**
  * @phpstan-import-type alias_config from MoveCommand
  */
 final class Alias implements Stringable {
@@ -136,9 +137,9 @@ final class Alias implements Stringable {
 	 */
 	public function get_url(): string {
 		if ( ! isset( $this->url ) ) {
-			$result = $this->run_wp( command: 'config get WP_HOME', quiet: true );
+			$result = $this->run_wp( 'config get WP_HOME', false, true );
 			if ( ! $result->is_successful() ) {
-				$result = $this->run_wp( command: 'option get home', quiet: true );
+				$result = $this->run_wp( 'option get home', false, true );
 			}
 			$this->url = $result->stdout;
 		}
@@ -152,7 +153,7 @@ final class Alias implements Stringable {
 	 * @return string
 	 */
 	public function get_upload_path(): string {
-		$result = $this->run_wp( command: 'eval "echo wp_get_upload_dir()[\'basedir\'] ?? \'\';"', quiet: true );
+		$result = $this->run_wp( 'eval "echo wp_get_upload_dir()[\'basedir\'] ?? \'\';"', false, true );
 		return $result->stdout;
 	}
 
@@ -162,7 +163,7 @@ final class Alias implements Stringable {
 	 * @return string
 	 */
 	public function get_themes_path(): string {
-		$result = $this->run_wp( command: 'eval "echo get_theme_root() ?? \'\';"', quiet: true );
+		$result = $this->run_wp( 'eval "echo get_theme_root() ?? \'\';"', false, true );
 		return $result->stdout;
 	}
 
@@ -172,7 +173,7 @@ final class Alias implements Stringable {
 	 * @return string
 	 */
 	public function get_plugins_path(): string {
-		$result = $this->run_wp( command: 'eval "echo WP_PLUGIN_DIR ?? \'\';"', quiet: true );
+		$result = $this->run_wp( 'eval "echo WP_PLUGIN_DIR ?? \'\';"', false, true );
 		return $result->stdout;
 	}
 
@@ -182,7 +183,7 @@ final class Alias implements Stringable {
 	 * @return string
 	 */
 	public function get_mu_plugins_path(): string {
-		$result = $this->run_wp( command: 'eval "echo WPMU_PLUGIN_DIR ?? \'\';"', quiet: true );
+		$result = $this->run_wp( 'eval "echo WPMU_PLUGIN_DIR ?? \'\';"', false, true );
 		return $result->stdout;
 	}
 
@@ -192,7 +193,7 @@ final class Alias implements Stringable {
 	 * @return string
 	 */
 	public function get_languages_path(): string {
-		$result = $this->run_wp( command: 'eval "echo WP_LANG_DIR ?? \'\';"', quiet: true );
+		$result = $this->run_wp( 'eval "echo WP_LANG_DIR ?? \'\';"', false, true );
 		return $result->stdout;
 	}
 
@@ -425,9 +426,9 @@ final class Alias implements Stringable {
 				case self::COMMAND_TYPE_RAW:
 					/** @var ProcessRun $result */
 					$result = WP_CLI::launch(
-						command: $command,
-						exit_on_error: false,
-						return_detailed: true
+						$command,
+						false,
+						true
 					);
 					break;
 				default:
@@ -436,10 +437,10 @@ final class Alias implements Stringable {
 		}
 
 		$process_result = new ProcessResult(
-			command: sprintf( '%s%s', self::COMMAND_TYPE_WP === $type ? 'wp ' : '', $result->command ),
-			exit_code: $result->return_code,
-			stdout: $result->stdout,
-			stderr: $result->stderr,
+			sprintf( '%s%s', self::COMMAND_TYPE_WP === $type ? 'wp ' : '', $result->command ),
+			$result->return_code,
+			$result->stdout,
+			$result->stderr,
 		);
 
 		if ( ! $quiet ) {

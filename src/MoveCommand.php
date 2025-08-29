@@ -244,7 +244,7 @@ class MoveCommand {
 		$from->export_db( $from, $from_dump_tmp, false, $dry_run );
 
 		// Search replace URLs
-		$this->replace_urls( from: $from, to: $to );
+		$this->replace_urls( $from, $to );
 
 		// Export local DB with replaced URLs to remote
 		$to_dump_tmp = $to->get_filename_tmp( false, true );
