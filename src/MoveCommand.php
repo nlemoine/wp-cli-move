@@ -256,7 +256,79 @@ class MoveCommand {
 			return;
 		}
 
-		$this->replace( $from, $to, $from_url, $to_url, $dry_run );
+		// Listed on the source side, whose database always matches its own
+		// configuration at this point. Null when not a multisite.
+		$site_urls    = $from->get_site_urls();
+		$is_multisite = null !== $site_urls;
+
+		$this->replace( $from, $to, $from_url, $to_url, $dry_run, $is_multisite );
+
+		if ( null === $site_urls ) {
+			return;
+		}
+
+		$from_host = Utils\parse_url( $from_url, PHP_URL_HOST );
+		$to_host   = Utils\parse_url( $to_url, PHP_URL_HOST );
+
+		if ( ! is_string( $from_host ) || ! is_string( $to_host ) || $from_host === $to_host ) {
+			return;
+		}
+
+		// Resolved on the source side too: `db prefix` needs a loaded WordPress,
+		// which the destination cannot provide until domains are fully replaced.
+		$base_prefix = $from->get_base_prefix();
+
+		// Subdomain site URLs do not contain the main site URL, they each need
+		// their own replacement pair (en.example.org => en.example.test).
+		foreach ( $site_urls as $site_url ) {
+			$mapped_url = $this->map_site_url( $site_url, $from_host, $to_url );
+			if ( null === $mapped_url ) {
+				continue;
+			}
+
+			$this->replace( $from, $to, rtrim( $site_url, '/' ), $mapped_url, $dry_run, true );
+		}
+
+		// wp_site/wp_blogs store bare domains. Restrict the bare domain
+		// replacement to these two tables, so email addresses or domain mentions
+		// in content are left untouched.
+		$this->replace( $from, $to, $from_host, $to_host, $dry_run, true, [ "{$base_prefix}blogs", "{$base_prefix}site" ] );
+	}
+
+	/**
+	 * Map a site URL to its destination equivalent, swapping the network domain
+	 *
+	 * @param string $site_url
+	 * @param string $from_host
+	 * @param string $to_url
+	 * @return string|null Null when the site needs no dedicated replacement
+	 *                     (main host) or cannot be mapped (custom mapped domain).
+	 */
+	private function map_site_url( string $site_url, string $from_host, string $to_url ): ?string {
+		$site_host = Utils\parse_url( $site_url, PHP_URL_HOST );
+		if ( ! is_string( $site_host ) || $site_host === $from_host ) {
+			return null;
+		}
+
+		if ( ! str_ends_with( $site_host, '.' . $from_host ) ) {
+			WP_CLI::warning( "Site {$site_url} uses a custom mapped domain, skipping its URL replacement" );
+			return null;
+		}
+
+		$to_bits = Utils\parse_url( $to_url );
+		if ( ! is_array( $to_bits ) || ! isset( $to_bits['scheme'], $to_bits['host'] ) ) {
+			return null;
+		}
+
+		$site_path = Utils\parse_url( $site_url, PHP_URL_PATH );
+
+		return sprintf(
+			'%s://%s%s%s',
+			$to_bits['scheme'],
+			substr( $site_host, 0, -strlen( $from_host ) ) . $to_bits['host'],
+			isset( $to_bits['port'] ) ? ':' . $to_bits['port'] : '',
+			is_string( $site_path ) ? rtrim( $site_path, '/' ) : ''
+		);
 	}
 
 	/**
@@ -267,15 +339,33 @@ class MoveCommand {
 	 * @param string $from_string
 	 * @param string $to_string
 	 * @param bool $dry_run
+	 * @param bool $multisite
+	 * @param array<string> $tables Restrict the replacement to these tables.
 	 * @return void
 	 */
-	private function replace( Alias $from, Alias $to, string $from_string, string $to_string, $dry_run = false ): void {
+	private function replace( Alias $from, Alias $to, string $from_string, string $to_string, $dry_run = false, bool $multisite = false, array $tables = [] ): void {
 		$where = $from;
 		if ( ! $where->is_local() ) {
 			$where = $to;
 		}
 
 		$replace_command = Utils\esc_cmd( 'search-replace %s %s', $from_string, $to_string );
+
+		foreach ( $tables as $table ) {
+			$replace_command .= Utils\esc_cmd( ' %s', $table );
+		}
+
+		if ( $multisite ) {
+			// Bootstrap against the searched string: it is what the database
+			// currently contains, the configured DOMAIN_CURRENT_SITE may not.
+			$replace_command .= Utils\esc_cmd( ' --url=%s', $from_string );
+
+			if ( [] === $tables ) {
+				// Scope to all prefixed tables, --network misses plugin tables
+				// that are not registered on $wpdb (e.g. Yoast indexables).
+				$replace_command .= ' --all-tables-with-prefix';
+			}
+		}
 
 		$where->run_wp( $replace_command, $dry_run );
 	}
