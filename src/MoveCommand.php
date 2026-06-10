@@ -315,18 +315,20 @@ class MoveCommand {
 			return null;
 		}
 
-		$to_bits = Utils\parse_url( $to_url );
-		if ( ! is_array( $to_bits ) || ! isset( $to_bits['scheme'], $to_bits['host'] ) ) {
+		$to_scheme = Utils\parse_url( $to_url, PHP_URL_SCHEME );
+		$to_host   = Utils\parse_url( $to_url, PHP_URL_HOST );
+		if ( ! is_string( $to_scheme ) || ! is_string( $to_host ) ) {
 			return null;
 		}
 
+		$to_port   = Utils\parse_url( $to_url, PHP_URL_PORT );
 		$site_path = Utils\parse_url( $site_url, PHP_URL_PATH );
 
 		return sprintf(
 			'%s://%s%s%s',
-			$to_bits['scheme'],
-			substr( $site_host, 0, -strlen( $from_host ) ) . $to_bits['host'],
-			isset( $to_bits['port'] ) ? ':' . $to_bits['port'] : '',
+			$to_scheme,
+			substr( $site_host, 0, -strlen( $from_host ) ) . $to_host,
+			is_int( $to_port ) ? ':' . $to_port : '',
 			is_string( $site_path ) ? rtrim( $site_path, '/' ) : ''
 		);
 	}
