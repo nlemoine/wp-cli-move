@@ -74,6 +74,21 @@ Both `pull` and `push` commands use the same options.
 > [!NOTE]
 > Each time you sync your database from one stage to another, `wp-cli-move` will locally backup the database of the synced stage (a local database dump when pulling, a remote database dump when pushing).
 
+### Multisite
+
+Multisite installations are supported. In addition to the home URL replacement, `wp-cli-move` will:
+
+- bootstrap WordPress with the source URL (`--url=...`): right after an import, the database does not match the configured `DOMAIN_CURRENT_SITE` anymore, WordPress could not load otherwise
+- scope replacements to all tables sharing the install prefix (`--all-tables-with-prefix`), so plugin tables that are not registered on `$wpdb` (e.g. Yoast indexables) are covered too
+- on subdomain networks, run a dedicated replacement pair for each site (`https://en.example.org` → `https://en.example.test`)
+- replace the bare domain (e.g. `example.org` → `example.test`) in the `wp_site` and `wp_blogs` tables **only**: email addresses or domain mentions in content are left untouched
+
+Network types:
+
+- **Subdirectory** networks are fully covered.
+- **Subdomain** networks are covered as long as domains are renamed consistently between stages (`en.example.org` on production is expected to be `en.example.test` locally).
+- **Domain mapped** sites are skipped with a warning: there is no way to guess their destination domain. Sites with custom mapped domains keep them after a sync.
+
 ### Examples
 
 ### Pulling content

@@ -147,6 +147,36 @@ final class Alias implements Stringable {
 	}
 
 	/**
+	 * Get the URLs of all sites in a multisite network
+	 *
+	 * @return list<string>|null Null when the install is not a multisite.
+	 */
+	public function get_site_urls(): ?array {
+		try {
+			$result = $this->run_wp( command: 'site list --field=url --format=json', quiet: true );
+		} catch ( ProcessFailedException ) {
+			return null;
+		}
+
+		$urls = json_decode( $result->stdout, true );
+		if ( ! is_array( $urls ) ) {
+			return null;
+		}
+
+		return array_values( array_filter( $urls, is_string( ... ) ) );
+	}
+
+	/**
+	 * Get the base table prefix
+	 *
+	 * @return string
+	 */
+	public function get_base_prefix(): string {
+		$result = $this->run_wp( command: 'db prefix', quiet: true );
+		return trim( $result->stdout );
+	}
+
+	/**
 	 * Get the upload path
 	 *
 	 * @return string
