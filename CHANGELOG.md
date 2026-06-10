@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.1.2](https://github.com/nlemoine/wp-cli-move/compare/0.1.1...0.1.2) (2026-06-10)
+
+
+### Features
+
+* support multisite installations ([1956e87](https://github.com/nlemoine/wp-cli-move/commit/1956e874e3f9306afc9936acb6f6555e89535ebf))
+
+
+### Bug Fixes
+
+* phpstan errors on PHP 8.5 ([b13b4fc](https://github.com/nlemoine/wp-cli-move/commit/b13b4fce1351d6ae888feb2dc9765c1f4ff62cac))
+
 ## [0.1.1](https://github.com/nlemoine/wp-cli-move/compare/0.1.0...0.1.1) (2025-05-16)
 
 
