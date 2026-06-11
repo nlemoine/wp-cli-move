@@ -24,11 +24,19 @@ use function cli\menu;
  */
 class MoveCommand {
 
-	private const DATA_TYPE_DB      = 'db';
-	private const DATA_TYPE_UPLOADS = 'uploads';
-	private const DATA_TYPES        = [
+	private const DATA_TYPE_DB         = 'db';
+	private const DATA_TYPE_UPLOADS    = 'uploads';
+	private const DATA_TYPE_THEMES     = 'themes';
+	private const DATA_TYPE_PLUGINS    = 'plugins';
+	private const DATA_TYPE_MU_PLUGINS = 'mu-plugins';
+	private const DATA_TYPE_LANGUAGES  = 'languages';
+	private const DATA_TYPES           = [
 		self::DATA_TYPE_DB,
 		self::DATA_TYPE_UPLOADS,
+		self::DATA_TYPE_THEMES,
+		self::DATA_TYPE_PLUGINS,
+		self::DATA_TYPE_MU_PLUGINS,
+		self::DATA_TYPE_LANGUAGES,
 	];
 
 	public const DEFAULT_MYSQLDUMP_ASSOC_ARGS = [
@@ -64,6 +72,18 @@ class MoveCommand {
 	 * [--uploads]
 	 * : Pull only the uploads folder.
 	 *
+	 * [--themes]
+	 * : Pull only the themes folder.
+	 *
+	 * [--plugins]
+	 * : Pull only the plugins folder.
+	 *
+	 * [--mu-plugins]
+	 * : Pull only the mu-plugins folder.
+	 *
+	 * [--languages]
+	 * : Pull only the languages folder.
+	 *
 	 * [--disable-compress]
 	 * : Disable database dump compression.
 	 *
@@ -96,6 +116,18 @@ class MoveCommand {
 	 *
 	 * [--uploads]
 	 * : Push only the uploads folder.
+	 *
+	 * [--themes]
+	 * : Push only the themes folder.
+	 *
+	 * [--plugins]
+	 * : Push only the plugins folder.
+	 *
+	 * [--mu-plugins]
+	 * : Push only the mu-plugins folder.
+	 *
+	 * [--languages]
+	 * : Push only the languages folder.
 	 *
 	 * [--disable-compress]
 	 * : Disable database dump compression.
@@ -141,6 +173,22 @@ class MoveCommand {
 
 		if ( $data_types['uploads'] ) {
 			$this->sync_uploads( $from, $to, $dry_run );
+		}
+
+		if ( $data_types['themes'] ) {
+			$this->sync_themes( $from, $to, $dry_run );
+		}
+
+		if ( $data_types['plugins'] ) {
+			$this->sync_plugins( $from, $to, $dry_run );
+		}
+
+		if ( $data_types['mu-plugins'] ) {
+			$this->sync_mu_plugins( $from, $to, $dry_run );
+		}
+
+		if ( $data_types['languages'] ) {
+			$this->sync_languages( $from, $to, $dry_run );
 		}
 
 		if ( $data_types['db'] ) {
@@ -196,7 +244,7 @@ class MoveCommand {
 		$from->export_db( $from, $from_dump_tmp, false, $dry_run );
 
 		// Search replace URLs
-		$this->replace_urls( from: $from, to: $to );
+		$this->replace_urls( $from, $to );
 
 		// Export local DB with replaced URLs to remote
 		$to_dump_tmp = $to->get_filename_tmp( false, true );
@@ -393,6 +441,115 @@ class MoveCommand {
 
 		$this->log_section( sprintf( '%s %s', $to->is_local() ? '⬇️ Pulling uploads from' : '⬆️ Pushing uploads to', $remote ) );
 
+		$this->sync_directory( $from, $to, $from_path, $to_path, $dry_run );
+	}
+
+	/**
+	 * Rsync themes between two aliases
+	 *
+	 * @param Alias $from
+	 * @param Alias $to
+	 * @return void
+	 */
+	private function sync_themes( Alias $from, Alias $to, bool $dry_run = false ): void {
+		$remote = $from->is_local() ? $to : $from;
+
+		// Get theme paths
+		$from_path = $from->get_themes_path();
+		$to_path   = $to->get_themes_path();
+
+		if ( ! $from_path || ! $to_path ) {
+			WP_CLI::error( 'Could not determine themes paths' );
+		}
+
+		$this->log_section( sprintf( '%s %s', $to->is_local() ? '⬇️ Pulling themes from' : '⬆️ Pushing themes to', $remote ) );
+
+		$this->sync_directory( $from, $to, $from_path, $to_path, $dry_run );
+	}
+
+	/**
+	 * Rsync plugins between two aliases
+	 *
+	 * @param Alias $from
+	 * @param Alias $to
+	 * @return void
+	 */
+	private function sync_plugins( Alias $from, Alias $to, bool $dry_run = false ): void {
+		$remote = $from->is_local() ? $to : $from;
+
+		// Get plugin paths
+		$from_path = $from->get_plugins_path();
+		$to_path   = $to->get_plugins_path();
+
+		if ( ! $from_path || ! $to_path ) {
+			WP_CLI::error( 'Could not determine plugins paths' );
+		}
+
+		$this->log_section( sprintf( '%s %s', $to->is_local() ? '⬇️ Pulling plugins from' : '⬆️ Pushing plugins to', $remote ) );
+
+		$this->sync_directory( $from, $to, $from_path, $to_path, $dry_run );
+	}
+
+	/**
+	 * Rsync mu-plugins between two aliases
+	 *
+	 * @param Alias $from
+	 * @param Alias $to
+	 * @return void
+	 */
+	private function sync_mu_plugins( Alias $from, Alias $to, bool $dry_run = false ): void {
+		$remote = $from->is_local() ? $to : $from;
+
+		// Get mu-plugin paths
+		$from_path = $from->get_mu_plugins_path();
+		$to_path   = $to->get_mu_plugins_path();
+
+		if ( ! $from_path || ! $to_path ) {
+			WP_CLI::error( 'Could not determine mu-plugins paths' );
+		}
+
+		$this->log_section( sprintf( '%s %s', $to->is_local() ? '⬇️ Pulling mu-plugins from' : '⬆️ Pushing mu-plugins to', $remote ) );
+
+		$this->sync_directory( $from, $to, $from_path, $to_path, $dry_run );
+	}
+
+	/**
+	 * Rsync languages between two aliases
+	 *
+	 * @param Alias $from
+	 * @param Alias $to
+	 * @return void
+	 */
+	private function sync_languages( Alias $from, Alias $to, bool $dry_run = false ): void {
+		$remote = $from->is_local() ? $to : $from;
+
+		// Get language paths
+		$from_path = $from->get_languages_path();
+		$to_path   = $to->get_languages_path();
+
+		if ( ! $from_path || ! $to_path ) {
+			WP_CLI::error( 'Could not determine languages paths' );
+		}
+
+		$this->log_section( sprintf( '%s %s', $to->is_local() ? '⬇️ Pulling languages from' : '⬆️ Pushing languages to', $remote ) );
+
+		$this->sync_directory( $from, $to, $from_path, $to_path, $dry_run );
+	}
+
+	/**
+	 * Generic rsync directory sync between two aliases
+	 *
+	 * @param Alias $from
+	 * @param Alias $to
+	 * @param string $from_path
+	 * @param string $to_path
+	 * @param bool $dry_run
+	 * @return void
+	 */
+	private function sync_directory( Alias $from, Alias $to, string $from_path, string $to_path, bool $dry_run = false ): void {
+		$remote = $from->is_local() ? $to : $from;
+		$local  = $from->is_local() ? $from : $to;
+
 		$rsync_args        = self::DEFAULT_RSYNC_ARGS;
 		$rsync_args['rsh'] = $remote->generate_ssh_command( '' );
 
@@ -416,7 +573,19 @@ class MoveCommand {
 	private function get_data_types( array $args ): array {
 		$data_types = array_combine( self::DATA_TYPES, array_map( fn( string $type ): bool => (bool) Utils\get_flag_value( $args, $type, false ), self::DATA_TYPES ) );
 
-		return count( array_filter( $data_types ) ) === 0 ? array_fill_keys( self::DATA_TYPES, true ) : $data_types;
+		// For backward compatibility, if no flags are provided, only sync db and uploads
+		if ( count( array_filter( $data_types ) ) === 0 ) {
+			return [
+				self::DATA_TYPE_DB => true,
+				self::DATA_TYPE_UPLOADS => true,
+				self::DATA_TYPE_THEMES => false,
+				self::DATA_TYPE_PLUGINS => false,
+				self::DATA_TYPE_MU_PLUGINS => false,
+				self::DATA_TYPE_LANGUAGES => false,
+			];
+		}
+
+		return $data_types;
 	}
 
 	/**
