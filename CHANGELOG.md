@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.3](https://github.com/nlemoine/wp-cli-move/compare/0.1.2...0.1.3) (2026-06-17)
+
+
+### Bug Fixes
+
+* build rsync transport without double-escaping rsh ([a742237](https://github.com/nlemoine/wp-cli-move/commit/a74223711e1f3f1c10ad9e2508b81fa9155519c7))
+* force non-interactive ssh for db push, add unit tests ([46e7e06](https://github.com/nlemoine/wp-cli-move/commit/46e7e06566cd4a447d4ba17b3f0243c8f0cbf75e))
+
 ## [0.1.2](https://github.com/nlemoine/wp-cli-move/compare/0.1.1...0.1.2) (2026-06-10)
 
 
