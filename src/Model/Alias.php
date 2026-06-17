@@ -344,7 +344,7 @@ final class Alias implements Stringable {
 			$ssh_command = trim( str_replace( escapeshellarg( $placeholder ), '', $ssh_command ) );
 		}
 
-		return $ssh_command;
+		return self::force_no_tty( $ssh_command );
 	}
 
 	/**
@@ -390,6 +390,30 @@ final class Alias implements Stringable {
 		}
 
 		return "{$host}:{$path}";
+	}
+
+	/**
+	 * Force a non-interactive SSH channel by turning a `-t` request into `-T`.
+	 *
+	 * WP-CLI's `generate_ssh_command()` adds `-t` (allocate a TTY) when its
+	 * STDOUT is a TTY. That suits interactive `wp` calls, but every remote
+	 * command this tool runs over SSH either moves binary data (e.g. the gzip'd
+	 * SQL piped by {@see self::export_db()}) or needs no terminal at all, and a
+	 * real PTY -- forced by an `~/.ssh/config` `RequestTTY force`/`yes` -- mangles
+	 * the stream. `-T` disables the TTY and overrides such a request.
+	 *
+	 * Only plain `ssh` transports are touched; docker/vagrant builders use `-t`
+	 * with different semantics and have no `-T` equivalent.
+	 *
+	 * @param string $ssh_command
+	 * @return string
+	 */
+	public static function force_no_tty( string $ssh_command ): string {
+		if ( ! str_starts_with( $ssh_command, 'ssh ' ) ) {
+			return $ssh_command;
+		}
+
+		return preg_replace( '/(?<= )-t(?= )/', '-T', $ssh_command, 1 ) ?? $ssh_command;
 	}
 
 	/**
