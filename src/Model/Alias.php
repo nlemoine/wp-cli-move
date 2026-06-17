@@ -348,6 +348,51 @@ final class Alias implements Stringable {
 	}
 
 	/**
+	 * Build the SSH transport for rsync's `--rsh`/`-e` option.
+	 *
+	 * This intentionally does NOT reuse {@see self::generate_ssh_command()}.
+	 * That method returns a fully shell-escaped command meant to be executed
+	 * as-is (`ssh 'user@host' 'cmd'`); handing it to rsync's `--rsh` escapes it
+	 * a second time. GNU rsync peels the extra quotes back off, but stricter
+	 * `-e` parsers -- notably openrsync, the `/usr/bin/rsync` on macOS 15+ and
+	 * the BSDs -- do not, so the literal quotes reach `ssh` and the host fails
+	 * to resolve.
+	 *
+	 * Instead we emit a transport-only string that the caller escapes exactly
+	 * once. The host is not part of the transport; it travels in the location
+	 * built by {@see self::get_rsync_location()}. `-T` is forced so rsync's
+	 * binary stream is never attached to a TTY (e.g. an ssh_config `RequestTTY`).
+	 *
+	 * @return string
+	 */
+	public function get_rsync_rsh(): string {
+		$rsh = [ 'ssh', '-T' ];
+		if ( null !== $this->port ) {
+			$rsh[] = '-p ' . $this->port;
+		}
+		if ( null !== $this->key ) {
+			$rsh[] = '-i ' . escapeshellarg( $this->key );
+		}
+
+		return implode( ' ', $rsh );
+	}
+
+	/**
+	 * Build a remote rsync location (`[user@]host:path`) for this alias.
+	 *
+	 * @param string $path
+	 * @return string
+	 */
+	public function get_rsync_location( string $path ): string {
+		$host = (string) $this->host;
+		if ( null !== $this->user ) {
+			$host = "{$this->user}@{$host}";
+		}
+
+		return "{$host}:{$path}";
+	}
+
+	/**
 	 * Run a WP-CLI command
 	 *
 	 * @param string $command

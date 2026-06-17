@@ -393,16 +393,17 @@ class MoveCommand {
 
 		$this->log_section( sprintf( '%s %s', $to->is_local() ? '⬇️ Pulling uploads from' : '⬆️ Pushing uploads to', $remote ) );
 
-		$rsync_args        = self::DEFAULT_RSYNC_ARGS;
-		$rsync_args['rsh'] = $remote->generate_ssh_command( '' );
+		$rsync_args = Utils\assoc_args_to_str( self::DEFAULT_RSYNC_ARGS );
 
-		// Build rsync command
-		$rsync_args = Utils\assoc_args_to_str( $rsync_args );
+		$source = $from->is_local() ? "{$from_path}/" : $from->get_rsync_location( "{$from_path}/" );
+		$target = $to->is_local() ? "{$to_path}/" : $to->get_rsync_location( "{$to_path}/" );
 
-		$source = $from->is_local() ? "{$from_path}/" : ":{$from_path}/";
-		$target = $to->is_local() ? "{$to_path}/" : ":{$to_path}/";
-
-		$command = Utils\esc_cmd( "{$rsync_args} %s %s", $source, $target );
+		// Build the transport ourselves instead of via generate_ssh_command():
+		// that returns an already shell-escaped command, so routing it through
+		// --rsh escapes it twice. GNU rsync tolerates the extra quotes, but
+		// openrsync (macOS 15+/BSD) does not. esc_cmd escapes the transport
+		// exactly once; the host travels in the `[user@]host:path` location.
+		$command = Utils\esc_cmd( "{$rsync_args} --rsh=%s %s %s", $remote->get_rsync_rsh(), $source, $target );
 
 		$local->run_command( 'rsync', $command, $dry_run );
 	}
