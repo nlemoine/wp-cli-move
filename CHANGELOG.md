@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.4](https://github.com/nlemoine/wp-cli-move/compare/0.1.3...0.1.4) (2026-11-26)
+
+
+### Miscellaneous Chores
+
+* add GitHub Sponsors to composer funding ([6ca8b16](https://github.com/nlemoine/wp-cli-move/commit/6ca8b16c6ecb5366e0d172d6d5881c75a8f55d75))
+
 ## [0.1.3](https://github.com/nlemoine/wp-cli-move/compare/0.1.2...0.1.3) (2026-06-17)
 
 
